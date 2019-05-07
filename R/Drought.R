@@ -1,4 +1,4 @@
-setwd("D:\\Dokumentumok\\Traineeship\\Forecast_datas\\Daily_forecast")
+#setwd("D:\\Dokumentumok\\Traineeship\\Forecast_datas\\Daily_forecast")
 
 library(ncdf4)
 library(rwrfhydro)
