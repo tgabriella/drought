@@ -3,19 +3,15 @@ library(raster)
 library(rgdal)
 
 T2 <- "data/t2.tif"
-T2 <- raster(T2)
+T2 <- raster(T2)-273.15
 proj4 <- projection(T2)
 
 pol <- readOGR("data/POL_adm0.shp")
 pol <- spTransform(pol, proj4)
 
-input <- T2
-obj <- mask(input, pol)
+obj <- mask(T2, pol)
 
-minval <- minValue(obj)
-maxval <- maxValue(obj)
-
-breaks <-seq(minval, maxval, (maxval - minval) / 70)
+breaks <-seq(-70, 70, 1)
 
 tempcolores <- c("#f6c39f","#e3ac89","#cb9881","#b58575","#9c716e","#865c62","#704754",
                 "#57344a","#3f1f3f","#240d2b","#260225","#2e0331","#370938","#420a40",
@@ -33,13 +29,28 @@ tempcolores <- c("#f6c39f","#e3ac89","#cb9881","#b58575","#9c716e","#865c62","#7
                 "#442321","#583e3a","#6f5652","#866e6a","#9c8982","#b2a59c","#c8bcb1",
                 "#c9bdb1","#ddd5c9","#f5efe3","#f4efe3")
 
+
+image(matrix(-51:51), breaks = -51:51, col = tempcolores, xaxt= 'n', yaxt='n')
+axis(1, at=0:102/102, labels = -51:51)
+
+
 tm_shape(obj) +
   tm_raster(
     title = "title"  ,
     palette = tempcolores,
     breaks = breaks,
     interpolate = TRUE
-  ) 
+  )  + tm_shape(pol) +
+  tm_polygons(alpha = 0.001, lwd=3.5) 
+  
+
+# a tak to wyglada w plocie:
+plot(obj, breaks = -51:51, col=tempcolores)
+plot(pol, add=T)
+# dodajmy +5
+plot(obj+5, breaks = -51:51, col=tempcolores)
+
+
 
 tm_shape(obj + 5) +
   tm_raster(
