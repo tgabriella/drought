@@ -41,7 +41,8 @@ tm_shape(obj) +
     title = "title"  ,
     palette = tempcolores,
     breaks = breaks,
-    interpolate = FALSE
+    interpolate = FALSE, 
+    legend.is.portrait = FALSE
   )  + tm_shape(pol) +
   tm_borders(lwd=3.5, col="black") +
   tm_layout(#title = "Maximum temperature [*C]: \n2019-04-21 00:00 UTC",title.size = 1,
