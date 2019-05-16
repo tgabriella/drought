@@ -188,7 +188,7 @@ tm_shape(obj) +
   tm_text("temp") +   #mert centroidy$temp - nek nevezt?k el
   
   #Title of the figure
-  tm_layout(title = "Maximum temperature [?C]: \n2019-04-21 00:00 UTC",title.size = 1,
+  tm_layout(title = "Maximum temperature [°C]: \n2019-04-21 00:00 UTC",title.size = 1,
             sepia.intensity = 0.2,legend.just = "right",title.color = "blue",
             compass.type = "arrow",title.bg.color = "white", title.bg.alpha = 0.5,title.position = c(0.02,0.06),
             legend.outside = F,
