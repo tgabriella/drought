@@ -1,11 +1,9 @@
 library(raster)
 library(dplyr)
 library(lubridate)
-library(ncdf4)
 library(rwrfhydro)
 library(rgdal)
 library(tmap)
-library(sp)
 library(rgeos)
 library(rgdal)
 
@@ -44,7 +42,7 @@ sumfunction<- function(input="inp"){
 files1<-list()
 prec_cum<-list()
 
-for(i in 1:5){
+for(i in 1:31){
   files1[[i]]<- paste0("data/",df1[df1$decade==i,"filename"])
   prec_cum[[i]]<-sumfunction(files1[[i]])
   print(i)
@@ -75,7 +73,7 @@ meanfunction<- function(input="inp"){
 files2<-list()
 mean_temp<-list()
 
-for(i in 1:5){
+for(i in 1:31){
   files2[[i]]<- df2[df2$decade==i,"filename"]
   mean_temp[[i]]<-meanfunction(files2[[i]])
   print(i)
@@ -84,6 +82,23 @@ for(i in 1:5){
 
 proj4<- projection(mean_temp[[1]])
 
+
+
+########################### HTC ######################
+
+HTC<- list()
+
+
+
+HTC_function <-function(a,b){
+  res<-(a/b)
+}
+
+
+for(i in 1:31){
+  HTC[[i]]<- overlay(mean_temp[[i]], prec_cum[[i]], fun=HTC_function)
+}
+  
 # Creating figure
 
 #color scale
@@ -151,7 +166,7 @@ figures_temp<- function(input="in"){
   tm_shape(obj) +
     tm_raster(title= "Temperatura"  ,palette = tempcolores2, breaks=breaks2, 
               legend.is.portrait = FALSE,
-              interpolate = FALSE)  +
+              interpolate = T)  +
     
     #Border  
     tm_shape(pol) +
@@ -185,7 +200,7 @@ figures_temp<- function(input="in"){
               legend.text.size = 0.7,
               #legend.position = c("right","bottom"),
               legend.bg.color = "#FFFFFF60",
-              legend.height = 0.55,
+              legend.height = 1.5,
               legend.frame.lwd = 1,
               legend.frame = F,
               legend.bg.alpha = 1,
@@ -200,14 +215,180 @@ figures_temp<- function(input="in"){
     tm_grid(projection = "longlat", x = 10:30, y=40:60, labels.col = "black", 
             labels.size = 0.8, labels.inside.frame = T)
   
-  #print(substring(input, first= 6, last = 15))
-  #print(tit)
+
 }
 
 
 figures_temp(input = mean_temp[[2]] ) 
 
-library(parallel)
-map <- mclapply(mean_temp, function(x) figures_temp(input = x), mc.cores = 6)
 
-print(map[[5]])
+#only on linux 
+#library(parallel)
+#map <- mclapply(mean_temp, function(x) figures_temp(input = x), mc.cores = 6)
+
+#print(map[[5]])
+
+
+# Creating the map of av.temperature
+figures_prec<- function(input="in"){
+  print(input)
+  
+  obj<- mask(input, pol)
+  
+  
+  centroidy = gCentroid(wojewodztwa,byid=TRUE)
+  centroidy$var <- round(extract(obj, centroidy),1)
+  
+  #tit<-substring(input, first= 1, last = 4)
+  
+  breaks <-seq(0, 35, 0.7)
+  
+  range_min <- floor(min(minValue(obj)))
+  range_max <- ceiling(max(maxValue(obj)))
+  
+  ind <- which(breaks> range_min & breaks < range_max)
+  breaks2 <- breaks[ind]
+  tempcolores2 <- tempcolores[ind[-length(ind)]]
+  
+  tm_shape(obj) +
+    tm_raster(title= "Precipitation"  ,palette = tempcolores2, breaks=breaks2, 
+              legend.is.portrait = FALSE,
+              interpolate = T)  +
+    
+    #Border  
+    tm_shape(pol) +
+    tm_polygons(alpha = 0.001, lwd=3.5) +
+    
+    #Border of counties 
+    tm_shape(wojewodztwa)+
+    tm_polygons(alpha = 0.01, lwd=0.5)+
+    
+    #Rivers    
+    tm_shape(rzeki)+
+    tm_lines(col="#2669d6", lwd=1.5) +
+    
+    #Lakes
+    #tm_shape(jeziora)+
+    #tm_polygons(col="#2669d6") +
+    
+    #Mean values of counties
+    tm_shape(centroidy)+
+    tm_text("var") +   
+    
+    #Title of the figure
+    tm_layout(#title = "cumulative precipitation",title.size = 1,
+      aes.palette = "div",
+      sepia.intensity = 0.2,legend.just = "right",title.color = "blue",
+      compass.type = "arrow",title.bg.color = "white", title.bg.alpha = 0.5,title.position = c(0.02,0.06),
+      legend.outside = T,
+      legend.outside.position =  "bottom",
+      legend.width = 1.0,
+      legend.title.size = 1.5,
+      legend.text.size = 0.7,
+      #legend.position = c("right","bottom"),
+      legend.bg.color = "#FFFFFF60",
+      legend.height = 2,
+      legend.frame.lwd = 1,
+      legend.frame = F,
+      legend.bg.alpha = 1,
+      space.color="grey90",
+      legend.format = list(text.separator = " "))+
+    #Compass
+    tm_compass(position = c("left","top"), color.light = "grey90") +
+    
+    tm_credits("(c) WindHydro", position = c(.875, .02), size = 0.6) +
+    
+    #Lon/Lat    
+    tm_grid(projection = "longlat", x = 10:30, y=40:60, labels.col = "black", 
+            labels.size = 0.8, labels.inside.frame = T)
+  
+  
+}
+
+
+figures_prec(input = prec_cum[[2]] ) 
+
+
+
+figures_htc<- function(input="in"){
+  print(input)
+  
+  obj<- mask(input, pol)
+  
+  
+  centroidy = gCentroid(wojewodztwa,byid=TRUE)
+  centroidy$var <- round(extract(obj, centroidy),1)
+  
+  #tit<-substring(input, first= 1, last = 4)
+  
+  breaks <-seq(-10, 100, 1)
+  
+  range_min <- floor(min(minValue(obj)))
+  range_max <- ceiling(max(maxValue(obj)))
+  
+  ind <- which(breaks> range_min & breaks < range_max)
+  breaks2 <- breaks[ind]
+  tempcolores2 <- tempcolores[ind[-length(ind)]]
+  
+  tm_shape(obj) +
+    tm_raster(title= "HTC"  ,palette = tempcolores2, breaks=breaks2, 
+              legend.is.portrait = FALSE,
+              interpolate = T)  +
+    
+    #Border  
+    tm_shape(pol) +
+    tm_polygons(alpha = 0.001, lwd=3.5) +
+    
+    #Border of counties 
+    tm_shape(wojewodztwa)+
+    tm_polygons(alpha = 0.01, lwd=0.5)+
+    
+    #Rivers    
+    tm_shape(rzeki)+
+    tm_lines(col="#2669d6", lwd=1.5) +
+    
+    #Lakes
+    #tm_shape(jeziora)+
+    #tm_polygons(col="#2669d6") +
+    
+    #Mean values of counties
+    tm_shape(centroidy)+
+    tm_text("var") +   
+    
+    #Title of the figure
+    tm_layout(#title = "cumulative precipitation",title.size = 1,
+      aes.palette = "div",
+      sepia.intensity = 0.2,legend.just = "right",title.color = "blue",
+      compass.type = "arrow",title.bg.color = "white", title.bg.alpha = 0.5,title.position = c(0.02,0.06),
+      legend.outside = T,
+      legend.outside.position =  "bottom",
+      legend.width = 1.0,
+      legend.title.size = 1.5,
+      legend.text.size = 0.7,
+      #legend.position = c("right","bottom"),
+      legend.bg.color = "#FFFFFF60",
+      legend.height = 2,
+      legend.frame.lwd = 1,
+      legend.frame = F,
+      legend.bg.alpha = 1,
+      space.color="grey90",
+      legend.format = list(text.separator = " "))+
+    #Compass
+    tm_compass(position = c("left","top"), color.light = "grey90") +
+    
+    tm_credits("(c) WindHydro", position = c(.875, .02), size = 0.6) +
+    
+    #Lon/Lat    
+    tm_grid(projection = "longlat", x = 10:30, y=40:60, labels.col = "black", 
+            labels.size = 0.8, labels.inside.frame = T)
+  
+  
+}
+
+
+figures_htc(input = HTC[[30]] ) 
+
+
+map_temp<-(lapply(mean_temp, function(x) figures_temp(input = x)))
+map_prec<-(lapply(prec_cum, function(x) figures_prec(input = x)))
+map_htc<-(lapply(HTC, function(x) figures_htc(input = x)))
