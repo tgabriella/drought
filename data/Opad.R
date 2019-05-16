@@ -1,38 +1,32 @@
-setwd("D:\\Dokumentumok\\Traineeship\\Forecast_datas\\Daily_forecast\\drought\\data")
-
-
+library(raster)
+library(dplyr)
+library(lubridate)
 library(ncdf4)
 library(rwrfhydro)
 library(rgdal)
-library(raster)
 library(tmap)
 library(sp)
 library(rgeos)
 library(rgdal)
 
-opadfiles<-dir(pattern = "opad")
+opadfiles<-dir(path = "data/", pattern = "opad")
 
 
-jan<- dir(pattern = "opad_2015.01.")
-feb<- dir(pattern = "opad_2015.02.")
-mar<- dir(pattern = "opad_2015.03.")
-apr<- dir(pattern = "opad_2015.04.")
-maj<- dir(pattern = "opad_2015.05.")
-jun<- dir(pattern = "opad_2015.06.")
-jul<- dir(pattern = "opad_2015.07.")
-aug<- dir(pattern = "opad_2015.08.")
-sep<- dir(pattern = "opad_2015.09.")
-oct<- dir(pattern = "opad_2015.10.")
-nov<- dir(pattern = "opad_2015.11.")
-dec<- dir(pattern = "opad_2015.12.")
+jan<- dir(path = "data/", pattern = "opad_2015.01.")
+feb<- dir(path = "data/", pattern = "opad_2015.02.")
+mar<- dir(path = "data/", pattern = "opad_2015.03.")
+apr<- dir(path = "data/", pattern = "opad_2015.04.")
+maj<- dir(path = "data/", pattern = "opad_2015.05.")
+jun<- dir(path = "data/", pattern = "opad_2015.06.")
+jul<- dir(path = "data/", pattern = "opad_2015.07.")
+aug<- dir(path = "data/", pattern = "opad_2015.08.")
+sep<- dir(path = "data/", pattern = "opad_2015.09.")
+oct<- dir(path = "data/", pattern = "opad_2015.10.")
+nov<- dir(path = "data/", pattern = "opad_2015.11.")
+dec<- dir(path = "data/", pattern = "opad_2015.12.")
 
 
 ##########################  opad  #######################################
-
-library(raster)
-library(dplyr)
-library(lubridate)
-
 df1 <- data.frame(date = seq.Date(as.Date("2015-01-01"), as.Date("2015-12-31"), by="day"))
 df1$decade <- ceiling((day(df1$date)-0.1)/10)
 df1$decade <- ifelse(df1$decade>3, 3, df1$decade) + (month(df1$date)-1)*3
@@ -50,28 +44,23 @@ sumfunction<- function(input="inp"){
 files1<-list()
 prec_cum<-list()
 
-for(i in 10:30){
-
-  files1[[i]]<- df1[df1$decade==i,"filename"]
-
-
-prec_cum[[i]]<-sumfunction(files1[[i]])
-
+for(i in 1:5){
+  files1[[i]]<- paste0("data/",df1[df1$decade==i,"filename"])
+  prec_cum[[i]]<-sumfunction(files1[[i]])
+  print(i)
 }
 
 #files12 <- df1[df1$decade %in% 10:30,"filename"]
 #prec_cum<- lapply(files12, function(x) sumfunction(input=x))
 
 #################################### temperatura ###################################x
-
-
-tempfiles<-dir(pattern = "tavg_2015.")
+tempfiles<-dir(path = "data/", pattern = "tavg_2015.")
 
 
 df2 <- data.frame(date = seq.Date(as.Date("2015-01-01"), as.Date("2015-12-31"), by="day"))
 df2$decade <- ceiling((day(df2$date)-0.1)/10)
 df2$decade <- ifelse(df2$decade>3, 3, df2$decade) + (month(df2$date)-1)*3
-df2$filename <- paste0("tavg_", format(as.Date(df2$date), "%Y.%m.%d"), ".tif")
+df2$filename <- paste0("data/tavg_", format(as.Date(df2$date), "%Y.%m.%d"), ".tif")
 
 
 meanfunction<- function(input="inp"){
@@ -86,30 +75,14 @@ meanfunction<- function(input="inp"){
 files2<-list()
 mean_temp<-list()
 
-for(i in 10:30){
-  
+for(i in 1:5){
   files2[[i]]<- df2[df2$decade==i,"filename"]
-  
-  
   mean_temp[[i]]<-meanfunction(files2[[i]])
-  
+  print(i)
 }
 
 
-
-
-files3 <- df1[df1$decade %in% 4:6,"filename"]
-
-
-r3 <- stack(files3)
-r3 <- calc(r3, function(x) sum(x, na.rm=T))
-
-#plot(mean_temp)
-
-proj4<- projection(mean_temp[[2]])
-proj4<- projection(r3)
-
-
+proj4<- projection(mean_temp[[1]])
 
 # Creating figure
 
@@ -140,17 +113,17 @@ tempcolores<- c("#f6c39f","#e3ac89","#cb9881","#b58575","#9c716e","#865c62","#70
 
 #Read the objects which determines the selected area: counties, lakes, riwers
 
-wojewodztwa <- readOGR("D:\\Dokumentumok\\Traineeship\\Forecast_datas\\Daily_forecast\\POL_adm1.shp")
-pol <- readOGR("D:\\Dokumentumok\\Traineeship\\Forecast_datas\\Daily_forecast\\POL_adm0.shp")
-rzeki <- readOGR("D:\\Dokumentumok\\Traineeship\\Forecast_datas\\Daily_forecast\\rzekiPL.shp") 
-jeziora <- readOGR("D:\\Dokumentumok\\Traineeship\\Forecast_datas\\Daily_forecast\\ne_10m_lakes.shp")
-jeziora <- (crop(pol, jeziora))
+wojewodztwa <- readOGR("data/POL_adm1.shp")
+pol <- readOGR("data/POL_adm0.shp")
+rzeki <- readOGR("data/rzekiPL.shp") 
+jeziora <- readOGR("data/ne_10m_lakes.shp")
 
 
 
 wojewodztwa <- spTransform(wojewodztwa,proj4)
 pol <- spTransform(pol, proj4)
-jeziora <- spTransform(jeziora, proj4)
+#jeziora <- (crop(pol, jeziora))
+#jeziora <- spTransform(jeziora, proj4)
 rzeki <- spTransform(rzeki, proj4)
 
 
@@ -158,19 +131,27 @@ rzeki <- spTransform(rzeki, proj4)
 figures_temp<- function(input="in"){
   print(input)
   
-  
   obj<- mask(input, pol)
   
   
   centroidy = gCentroid(wojewodztwa,byid=TRUE)
   centroidy$var <- round(extract(obj, centroidy),1)
   
-  tit<-substring(input, first= 1, last = 4)
+  #tit<-substring(input, first= 1, last = 4)
 
-  breaks <-seq(-51, 51, 1)
+  breaks <-seq(-24.5, 25.5, 0.5)
+  
+  range_min <- floor(min(minValue(obj)))
+  range_max <- ceiling(max(maxValue(obj)))
+  
+  ind <- which(breaks> range_min & breaks < range_max)
+  breaks2 <- breaks[ind]
+  tempcolores2 <- tempcolores[ind[-length(ind)]]
   
   tm_shape(obj) +
-    tm_raster(title= "Av_temp"  ,palette = tempcolores, breaks=breaks, interpolate = T)  +
+    tm_raster(title= "Temperatura"  ,palette = tempcolores2, breaks=breaks2, 
+              legend.is.portrait = FALSE,
+              interpolate = FALSE)  +
     
     #Border  
     tm_shape(pol) +
@@ -185,43 +166,48 @@ figures_temp<- function(input="in"){
     tm_lines(col="#2669d6", lwd=1.5) +
     
     #Lakes
-    tm_shape(jeziora)+
-    tm_polygons(col="#2669d6") +
+    #tm_shape(jeziora)+
+    #tm_polygons(col="#2669d6") +
     
     #Mean values of counties
     tm_shape(centroidy)+
     tm_text("var") +   
     
     #Title of the figure
-    tm_layout(title = "Mean temperature",title.size = 1,
+    tm_layout(#title = "Mean temperature",title.size = 1,
               aes.palette = "div",
               sepia.intensity = 0.2,legend.just = "right",title.color = "blue",
               compass.type = "arrow",title.bg.color = "white", title.bg.alpha = 0.5,title.position = c(0.02,0.06),
-              legend.outside = F,
-              legend.width = 2,
-              legend.title.size = 1,
-              legend.text.size = 1,
-              legend.position = c("right","bottom"),
-              legend.bg.color = "grey96",
-              legend.height = 0.95,
+              legend.outside = T,
+              legend.outside.position =  "bottom",
+              legend.width = 1.0,
+              legend.title.size = 1.5,
+              legend.text.size = 0.7,
+              #legend.position = c("right","bottom"),
+              legend.bg.color = "#FFFFFF60",
+              legend.height = 0.55,
               legend.frame.lwd = 1,
               legend.frame = F,
               legend.bg.alpha = 1,
-              space.color="grey90")+
+              space.color="grey90",
+              legend.format = list(text.separator = " "))+
     #Compass
     tm_compass(position = c("left","top"), color.light = "grey90") +
     
-    tm_credits("(c) WXCHARTS", position = c(.825, .04), size = 0.6) +
+    tm_credits("(c) WindHydro", position = c(.875, .02), size = 0.6) +
     
     #Lon/Lat    
-    tm_grid(projection = "longlat", x = 10:30, y=40:60, labels.col = "black", labels.size = 0.8, labels.inside.frame = T)
+    tm_grid(projection = "longlat", x = 10:30, y=40:60, labels.col = "black", 
+            labels.size = 0.8, labels.inside.frame = T)
   
-  print(substring(input, first= 6, last = 15))
-  print(tit)
+  #print(substring(input, first= 6, last = 15))
+  #print(tit)
 }
 
 
 figures_temp(input = mean_temp[[2]] ) 
 
-map<- lapply(mean_temp, function(x) figures_temp(input = x))
+library(parallel)
+map <- mclapply(mean_temp, function(x) figures_temp(input = x), mc.cores = 6)
 
+print(map[[5]])
