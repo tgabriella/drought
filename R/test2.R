@@ -10,8 +10,10 @@ pol <- readOGR("data/POL_adm0.shp")
 pol <- spTransform(pol, proj4)
 
 obj <- mask(T2, pol)
+obj <- stack(obj, obj+5)
 
-breaks <-seq(-70, 70, 1)
+
+breaks <-seq(-51, 51, 1)
 
 tempcolores <- c("#f6c39f","#e3ac89","#cb9881","#b58575","#9c716e","#865c62","#704754",
                 "#57344a","#3f1f3f","#240d2b","#260225","#2e0331","#370938","#420a40",
@@ -29,7 +31,7 @@ tempcolores <- c("#f6c39f","#e3ac89","#cb9881","#b58575","#9c716e","#865c62","#7
                 "#442321","#583e3a","#6f5652","#866e6a","#9c8982","#b2a59c","#c8bcb1",
                 "#c9bdb1","#ddd5c9","#f5efe3","#f4efe3")
 
-
+# our legend:
 image(matrix(-51:51), breaks = -51:51, col = tempcolores, xaxt= 'n', yaxt='n')
 axis(1, at=0:102/102, labels = -51:51)
 
@@ -39,9 +41,26 @@ tm_shape(obj) +
     title = "title"  ,
     palette = tempcolores,
     breaks = breaks,
-    interpolate = TRUE
+    interpolate = FALSE
   )  + tm_shape(pol) +
-  tm_polygons(alpha = 0.001, lwd=3.5) 
+  tm_borders(lwd=3.5, col="black") +
+  tm_layout(#title = "Maximum temperature [*C]: \n2019-04-21 00:00 UTC",title.size = 1,
+            sepia.intensity = 0.2,title.color = "blue",
+            compass.type = "arrow",title.bg.color = "white", title.bg.alpha = 0.5,
+            legend.outside =TRUE,
+            legend.outside.position = "bottom",
+            legend.stack = "horizontal",
+            legend.bg.color = "grey96",
+            legend.frame = F,
+            legend.bg.alpha = 1,
+            space.color="grey90")+
+  #Compass
+  tm_compass(position = c("left","top"), color.light = "grey90") +
+  
+  #  tm_credits("(c) WindHydro 2019", position = c(.85, 0), size = 0.7) 
+  
+  # Lon/lat
+  tm_grid(projection = "longlat", x = 10:30, y=40:60, labels.col = "black", labels.size = 0.8, labels.inside.frame = T)
   
 
 # a tak to wyglada w plocie:
@@ -49,13 +68,3 @@ plot(obj, breaks = -51:51, col=tempcolores)
 plot(pol, add=T)
 # dodajmy +5
 plot(obj+5, breaks = -51:51, col=tempcolores)
-
-
-
-tm_shape(obj + 5) +
-  tm_raster(
-    title = "title"  ,
-    palette = tempcolores,
-    breaks = breaks,
-    interpolate = TRUE
-  ) 
