@@ -41,10 +41,11 @@ tm_shape(obj) +
     title = "title"  ,
     palette = tempcolores,
     breaks = breaks,
-    interpolate = FALSE
+    interpolate = FALSE,
+    legend.is.portrait = FALSE
   )  + tm_shape(pol) +
   tm_borders(lwd=3.5, col="black") +
-  tm_layout(#title = "Maximum temperature [*C]: \n2019-04-21 00:00 UTC",title.size = 1,
+  tm_layout(title = "Maximum temperature [*C]: \n2019-04-21 00:00 UTC",title.size = 1,
             sepia.intensity = 0.2,title.color = "blue",
             compass.type = "arrow",title.bg.color = "white", title.bg.alpha = 0.5,
             legend.outside =TRUE,
@@ -53,6 +54,9 @@ tm_shape(obj) +
             legend.bg.color = "grey96",
             legend.frame = F,
             legend.bg.alpha = 1,
+            legend.width = 4,
+            #legend.title.size = 4,
+            legend.text.size = 0.5,
             space.color="grey90")+
   #Compass
   tm_compass(position = c("left","top"), color.light = "grey90") +
