@@ -382,7 +382,6 @@ figures_htc<- function(input="in"){
     tm_grid(projection = "longlat", x = 10:30, y=40:60, labels.col = "black", 
             labels.size = 0.8, labels.inside.frame = T)
   
-  
 }
 
 
