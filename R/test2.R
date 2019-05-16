@@ -2,18 +2,22 @@ library(tmap)
 library(raster)
 library(rgdal)
 
+
+
 T2 <- "data/t2.tif"
 T2 <- raster(T2)-273.15
 proj4 <- projection(T2)
 
 pol <- readOGR("data/POL_adm0.shp")
 pol <- spTransform(pol, proj4)
+rzekiPL <- readOGR("data/rzekiPL.shp")
+rzekiPL <- spTransform(rzekiPL, proj4)
 
 obj <- mask(T2, pol)
 obj <- stack(obj, obj+5)
 
 
-breaks <-seq(-51, 51, 1)
+breaks <-seq(-25, 25, by = 0.5)
 
 tempcolores <- c("#f6c39f","#e3ac89","#cb9881","#b58575","#9c716e","#865c62","#704754",
                 "#57344a","#3f1f3f","#240d2b","#260225","#2e0331","#370938","#420a40",
@@ -31,9 +35,16 @@ tempcolores <- c("#f6c39f","#e3ac89","#cb9881","#b58575","#9c716e","#865c62","#7
                 "#442321","#583e3a","#6f5652","#866e6a","#9c8982","#b2a59c","#c8bcb1",
                 "#c9bdb1","#ddd5c9","#f5efe3","#f4efe3")
 
+range_min <- floor(min(minValue(obj)))
+range_max <- ceiling(max(maxValue(obj)))
+
+ind <- which(breaks> range_min & breaks < range_max)
+breaks <- breaks[ind]
+tempcolores <- tempcolores[ind[-length(ind)]]
+
 # our legend:
-image(matrix(-51:51), breaks = -51:51, col = tempcolores, xaxt= 'n', yaxt='n')
-axis(1, at=0:102/102, labels = -51:51)
+image(matrix(-51:51/2), breaks = breaks, col = tempcolores, xaxt= 'n', yaxt='n')
+axis(1, at=0:102/102, labels = -51:51/2)
 
 
 tm_shape(obj) +
@@ -45,7 +56,9 @@ tm_shape(obj) +
     legend.is.portrait = FALSE
   )  + tm_shape(pol) +
   tm_borders(lwd=3.5, col="black") +
-  tm_layout(title = "Maximum temperature [*C]: \n2019-04-21 00:00 UTC",title.size = 1,
+        tm_shape(rzekiPL) +
+   tm_lines(lwd=1, col="blue") +
+  tm_layout(title = paste(names(obj), "Maximum temperature [*C]: \n2019-04-21 00:00 UTC"),title.size = 1,
             sepia.intensity = 0.2,title.color = "blue",
             compass.type = "arrow",title.bg.color = "white", title.bg.alpha = 0.5,
             legend.outside =TRUE,
@@ -68,7 +81,7 @@ tm_shape(obj) +
   
 
 # a tak to wyglada w plocie:
-plot(obj, breaks = -51:51, col=tempcolores)
+plot(obj, breaks = breaks, col=tempcolores)
 plot(pol, add=T)
 # dodajmy +5
 plot(obj+5, breaks = -51:51, col=tempcolores)
