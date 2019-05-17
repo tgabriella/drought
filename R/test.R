@@ -1,3 +1,6 @@
+setwd("D:\\Dokumentumok\\Traineeship\\Forecast_datas\\Daily_forecast\\drought\\data")
+
+library(rwrfhydro)
 library(rgdal)
 library(raster)
 library(tmap)
@@ -8,14 +11,14 @@ library(rgeos)
 
 
 
-T2 <- "data/T2.tif"
+T2<-dir(pattern="T2.tif")
 T2 <- raster(T2)
 
 
 
 # Creating figure
 
-#color scale:
+#color scale
 tempcolores<- c("#f6c39f","#e3ac89","#cb9881","#b58575","#9c716e","#865c62","#704754",
                 "#57344a","#3f1f3f","#240d2b","#260225","#2e0331","#370938","#420a40",
                 "#431243","#481046","#571658","#5e185e","#5f1b60","#671e67","#6d2069",
@@ -36,13 +39,21 @@ tempcolores<- c("#f6c39f","#e3ac89","#cb9881","#b58575","#9c716e","#865c62","#70
 
 
 
+geoFile <- "wrfout_d03_2019-04-21_00_00_00"
+proj4 <- GetProj(geoFile)
+proj4
+
+
+
+
+
 #Read the objects which determines the selected area: counties, lakes, riwers
 library(rgdal)
 library(raster)
-wojewodztwa <- readOGR("data/POL_adm1.shp")
-pol <- readOGR("data/POL_adm0.shp")
-rzeki <- readOGR("data/rzekiPL.shp") 
-jeziora <- readOGR("data/ne_10m_lakes.shp")
+wojewodztwa <- readOGR("D:\\Dokumentumok\\Traineeship\\Forecast_datas\\Daily_forecast\\POL_adm1.shp")
+pol <- readOGR("D:\\Dokumentumok\\Traineeship\\Forecast_datas\\Daily_forecast\\POL_adm0.shp")
+rzeki <- readOGR("D:\\Dokumentumok\\Traineeship\\Forecast_datas\\Daily_forecast\\rzekiPL.shp") 
+jeziora <- readOGR("D:\\Dokumentumok\\Traineeship\\Forecast_datas\\Daily_forecast\\ne_10m_lakes.shp")
 jeziora <- (crop(pol, jeziora))
 
 
@@ -54,7 +65,10 @@ rzeki <- spTransform(rzeki, proj4)
 
 
 # Creating the map
-  input <- T2
+figures_temp<- function(input="in"){
+  print(input)
+  
+  
   obj<- mask(input, pol)
   
   
@@ -114,4 +128,9 @@ rzeki <- spTransform(rzeki, proj4)
     #Lon/Lat    
     tm_grid(projection = "longlat", x = 10:30, y=40:60, labels.col = "black", labels.size = 0.8, labels.inside.frame = T)
   
+  
+  
+}
 
+
+figures_temp(input = T2 ) 

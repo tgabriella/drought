@@ -9,6 +9,7 @@ library(rgdal)
 library(tmap)
 library(rgeos)
 library(rgdal)
+library(sp)
 
 wojewodztwa <- readOGR("data/POL_adm1.shp")
 pol <- readOGR("data/POL_adm0.shp")
@@ -52,8 +53,8 @@ getdecade <- function(no = 4){
 
 ########################### HTC ######################
 htc_decade <- function(x = 5){
-temp <- meanfunction( input  = stack(paste0("data/",getdecade(no = x)$tempfile)))
-opad <- sumfunction( input  = stack(paste0("data/",getdecade(no = x)$opadfile)))
+temp <- meanfunction( input  = stack(paste0("data/",getdecade(no = x)$tempfiles)))
+opad <- sumfunction( input  = stack(paste0("data/",getdecade(no = x)$opadfiles)))
 opad <- mask(opad, pol)
 temp <- mask(temp, pol)
 temp[temp[]<5] <- 5
@@ -61,12 +62,14 @@ htc <- opad/round(temp,2)
 return(htc)
 }
 
-htc_maps <- pbmclapply(10:36, htc_decade, mc.cores = 3)
-htc_maps <- pbmclapply(10:36, htc_decade, mc.cores = 3)
+#htc_decade(6)
+
+htc_maps <- pbmclapply(10:36, htc_decade, mc.cores = 2)
+htc_maps <- pbmclapply(10:36, htc_decade, mc.cores = 2)
 htc_maps <- stack(htc_maps)
-opadek <- pbmclapply(10:36, function(x) sumfunction(stack(paste0("data/",getdecade(no = x)$opadfile))), mc.cores = 3)
+opadek <- pbmclapply(10:36, function(x) sumfunction(stack(paste0("data/",getdecade(no = x)$opadfiles))), mc.cores = 2)
 opadek <- stack(opadek)
-opadekIDW <- pbmclapply(10:36, function(x) sumfunction(stack(paste0("data/",getdecade(no = x)$opadfilesIDW))), mc.cores = 3)
+opadekIDW <- pbmclapply(10:36, function(x) sumfunction(stack(paste0("data/",getdecade(no = x)$opadfilesIDW))), mc.cores = 2)
 opadekIDW <- stack(opadekIDW)
 
 plot(opadek)
