@@ -43,7 +43,8 @@ files1<-list()
 prec_cum<-list()
 
 for(i in 1:31){
-  files1[[i]]<- paste0("data/",df1[df1$decade==i,"filename"])
+ # files1[[i]]<- paste0("data/",df1[df1$decade==i,"filename"])
+  files1[[i]]<- paste0(df1[df1$decade==i,"filename"])
   prec_cum[[i]]<-sumfunction(files1[[i]])
   print(i)
 }

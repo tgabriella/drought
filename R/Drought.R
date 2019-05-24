@@ -1,4 +1,4 @@
-#setwd("D:\\Dokumentumok\\Traineeship\\Forecast_datas\\Daily_forecast")
+setwd("D:\\Dokumentumok\\Traineeship\\Forecast_datas\\Daily_forecast")
 
 library(ncdf4)
 library(rwrfhydro)
@@ -8,7 +8,7 @@ library(tmap)
 library(sp)
 library(rgeos)
 
-readfunction<- function(data="file", datas= "datas"){
+readfunction<- function(data="file"){
   print(data)
   
   
@@ -33,7 +33,10 @@ readfunction<- function(data="file", datas= "datas"){
   lapply(ourfiles, function(x) myfunction_for_converting(input = x, variable="T02_MAX"))
   lapply(ourfiles, function(x) myfunction_for_converting(input = x, variable="T02_MEAN"))
   
-  
+}
+res<- readfunction("wrfout_d03_2019-04-21_00_00_00")
+
+
   ##########################################################
   
   
@@ -63,8 +66,8 @@ readfunction<- function(data="file", datas= "datas"){
   T02_MEAN<-dir(pattern="T02_MEAN_.tif")
   T02_MEAN <- stack(T02_MEAN)
   
-  datas<-list(U,V, ws, wd, T2, T02_MIN, T02_MEAN, T02_MAX)
-    return(datas)
+ # datas<-list(U,V, ws, wd, T2, T02_MIN, T02_MEAN, T02_MAX)
+   
 
   # daily means:
   dailymean_T2<- calc(T2, mean)
@@ -97,12 +100,11 @@ readfunction<- function(data="file", datas= "datas"){
   outputs<- list(dailymean_T2, dailymean_ws,dailymean_wd,  dailymean_T02_MAX, dailymean_T02_MIN, dailymean_T02_MEAN,
                  dailymax_T2, dailymax_ws,dailymax_wd, dailymax_T02_MAX, dailymax_T02_MIN, dailymax_T02_MEAN,
                  dailymin_T2, dailymin_ws,dailymin_wd,  dailymin_T02_MAX, dailymin_T02_MIN, dailymin_T02_MEAN)
-  return(outputs)
-}
+  #return(outputs)
+
 
 
 # Select the file and apply the function
-res<- readfunction("wrfout_d03_2019-04-21_00_00_00")
 
 
 
@@ -130,11 +132,13 @@ colores<- c( "#ebf7f9", "#d1ecf9", "#c1e1f5", "#a1cde7", "#87c3e2", "#81b9db", "
 
 
 
-geoFile <- "test.nc"
-proj4 <- GetProj(geoFile)
-proj4
+#geoFile <- "test.nc"
+#proj4 <- GetProj(geoFile)
+#proj4
 
+proj4<- "+proj=lcc +lat_1=49.826000213623 +lat_2=49.826000213623 +lat_0=51.8421516418457 +lon_0=16.2469997406006 +x_0=0 +y_0=0 +a=6370000 +b=6370000 +units=m +no_defs"
 
+proj4<- projection(outputs[[1]])
 
 #Read the objects which determines the selected area: counties, lakes, riwers
 library(rgdal)
@@ -146,15 +150,18 @@ jeziora <- readOGR("D:\\Dokumentumok\\Traineeship\\Forecast_datas\\Daily_forecas
 jeziora <- (crop(pol, jeziora))
 
 
-
-wojewodztwa <- spTransform(wojewodztwa, proj4)
+wojewodztwa <- spTransform(wojewodztwa,proj4)
 pol <- spTransform(pol, proj4)
+jeziora <- (crop(pol, jeziora))
 jeziora <- spTransform(jeziora, proj4)
 rzeki <- spTransform(rzeki, proj4)
 
 
+
+
+
 #Plotting object (temperature)
-obj<- mask(outputs[[7]]-273.15, pol)         
+obj<- mask(outputs[[1]]-273.15, pol)         
 
 
 
@@ -188,7 +195,7 @@ tm_shape(obj) +
   tm_text("temp") +   #mert centroidy$temp - nek nevezt?k el
   
   #Title of the figure
-  tm_layout(title = "Maximum temperature [Â°C]: \n2019-04-21 00:00 UTC",title.size = 1,
+  tm_layout(title = "Maximum temperature [°C]: \n2019-04-21 00:00 UTC",title.size = 1,
             sepia.intensity = 0.2,legend.just = "right",title.color = "blue",
             compass.type = "arrow",title.bg.color = "white", title.bg.alpha = 0.5,title.position = c(0.02,0.06),
             legend.outside = F,
@@ -274,4 +281,3 @@ tm_shape(obj ) +
 
 
 
-#ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDinEDw8kkz9QyDJyG1/zZYbDnAZkHi77FiOlhqcqbaSp06pKWVfJq8n56h+7YdGEQMdcavIkle/rfv5MAPt5BRNwU+hCQREcYn2wtjqVy2cj8WagzFaO2VjwmNVeWQXbOzudUbVzT8suD2CRQ7mICONVzhacrUb3XBBfSxIW5g38mxi5CIC5ZJ/TBXU7lkH6eXhIZRFZoDa2WvxDl9x1p5oxp49C1A5YDznCyMqf+aZFLPgPj++37WgI2UhMTj6DM1G1o5zYE8kVmehTl0bLmLOVCvh1zAq8fW9jX13p5uvCXnSLZrwYljCJBolbTyUwNBwA3ScIr7vAA7rbLs3BHn Home@ACER
